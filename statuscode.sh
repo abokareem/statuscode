@@ -2,9 +2,9 @@
 
 checkCode(){
   if [ $1 = 404 ]; then
-    echo $2","$1 >> "urls_with404.txt"
+    echo $2","$1 >> "urlswith404.txt"
   else
-    echo $2","$1 >> "urls_codes.txt"
+    echo $2","$1 >> "urlscodes.txt"
   fi
 }
 
@@ -239,35 +239,54 @@ speed5(){
   fi
 }
 
-read -p 'Your file with links:' filePath
-if [ -e $filePath ]; then
-    read -p 'Choose speed (1-5):' speed
-    if [ $speed -ge 1 -a $speed -le 5 ]; then
-      echo "URL,Code" > "urls_codes.txt"
-      `sort -u $filePath > "sorted_and_uniq.txt"`
-      IFS= readarray -t urls < "sorted_and_uniq.txt"
-      numoflines="${#urls[@]}"
-      case $speed in
-        1)
-        speed1 0
-        ;;
-        2)
-        speed2
-        ;;
-        3)
-        speed3
-        ;;
-        4)
-        speed4
-        ;;
-        5)
-        speed5
-        ;;
-      esac
-      echo "You can find 3 files in this directory: sorted_and_uniq.txt, urls_codes.txt and (if there were 404 codes, they are in) urls_with404.txt"
+
+startend(){
+  echo "URL,Code" > "urlscodes.txt"
+  `sort -u $filePath > "sortedanduniq.txt"`
+  winUnixCheck=`grep -l $'\r$' < "sortedanduniq.txt" | head`
+  if ! [ -z "$winUnixCheck" ] ;then
+    sed -i 's/\r//g' "sortedanduniq.txt"
+  fi
+  IFS= readarray -t urls < "sortedanduniq.txt"
+  numoflines="${#urls[@]}"
+  case $speed in
+    1)
+    speed1 0
+    ;;
+    2)
+    speed2
+    ;;
+    3)
+    speed3
+    ;;
+    4)
+    speed4
+    ;;
+    5)
+    speed5
+    ;;
+  esac
+  echo -e "You can find 3 files in this directory: \nsortedanduniq.txt \nurlscodes.txt \nand (if there were 404 codes, they are in) urlswith404.txt"
+}
+
+
+if [ "$1" != "" ]; then
+  if [ -e $1 ]; then
+    filePath=$1
+    if [ "$2" != "" ]; then
+      speed=$2
+      if [ $speed -ge 1 -a $speed -le 5 ]; then
+        startend
+      else
+        echo "Your input is wrong, enter one number from 1 to 5!"
+      fi
     else
-      echo "Your input is wrong, enter one number from 1 to 5!"
+      speed="5"
+      startend
     fi
   else
-    echo "Can't find $filePath, try again!"
+    echo "File $1 doesn't exist in $PWD"
+  fi
+else
+  echo "Please provide file with urls as an argument!"
 fi
